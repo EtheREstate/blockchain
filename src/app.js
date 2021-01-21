@@ -49,12 +49,12 @@ App = {
 	},
 	loadContract: async () => {
 		//Create a JS version of the smart contract
-		const toDoList = await $.getJSON('ToDoList.json'); //bs-config file points to the directory
-		App.contracts.ToDoList = TruffleContract(toDoList);
-		App.contracts.ToDoList.setProvider(App.web3Provider);
+		const Etherente = await $.getJSON('Etherente.json'); //bs-config file points to the directory
+		App.contracts.Etherente = TruffleContract(Etherente);
+		App.contracts.Etherente.setProvider(App.web3Provider);
 
 		//Hydrate the smart contract with values from the blockchain
-		App.toDoList = await App.contracts.ToDoList.deployed();
+		App.Etherente = await App.contracts.Etherente.deployed();
 	},
 	render: async () => {
 		//prevent double render
@@ -72,13 +72,13 @@ App = {
 	},
 	renderDeposits: async () => {
 		//load the total tasks count from the blockchain---------
-		const depositCount = await App.toDoList.depositCount();
+		const depositCount = await App.Etherente.depositCount();
 		const $taskTemplate = $('.taskTemplate');
 
 		//render out each task with a next task template----------
 		for (let index = 1; index <= depositCount; index++) {
 			//fetch the task data from the blockchain
-			const deposit = await App.toDoList.balances(index);
+			const deposit = await App.Etherente.balances(index);
 			const depositDate = new Date(deposit[0] * 1000); //task Id
 			const depositAddress = deposit[1]; //task content
 			let depositValue = deposit[2]; //task completed
@@ -106,9 +106,11 @@ App = {
 		//render the balance of the contract----------------------
 		const $headTemplate = $('.headTemplate');
 		const $SumTemplate = $headTemplate.clone();
-		let balance = await App.toDoList.balanceSum();
+		let balance = await App.Etherente.balanceSum();
 		balance = Math.round(Number(balance.toString()) / 10000000000000000) / 100;
-		$SumTemplate.find('.content').html(balance);
+		$SumTemplate
+			.find('.content')
+			.html(balance + ' Eth  (' + balance * 973 + '€)');
 		$SumTemplate.find('.content-address').html('TOTAL BALANCE');
 		$SumTemplate.find('.content-date').html(new Date());
 		$('#taskList').append($SumTemplate);
@@ -117,14 +119,7 @@ App = {
 	createTask: async () => {
 		App.setLoading(true);
 		const content = $('#newTask').val() * 1000000000000000;
-		await App.toDoList.invest({ value: content });
-		window.location.reload();
-	},
-	toggleCompleted: async (e) => {
-		console.log('toggle called');
-		App.setLoading(true);
-		const taskId = e.target.name;
-		await App.toDoList.toggleCompleted(taskId);
+		await App.Etherente.invest({ value: content });
 		window.location.reload();
 	},
 	setLoading: (boolean) => {
